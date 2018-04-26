@@ -1,0 +1,235 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Graphs</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @graphs.each do |graph| %>
+      <tr>
+        <td><%= link_to 'Show', graph %></td>
+        <td><%= link_to 'Edit', edit_graph_path(graph) %></td>
+        <td><%= link_to 'Destroy', graph, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Graph', new_graph_path %>
+
+<%=raw @df.to_html %>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ECharts</title>
+    <!-- including ECharts file -->
+</head>
+<body style="height: 100%; margin: 10px;">
+       <div id="container" style="height: 300px;"></div>
+       <div id="container1" style="height: 300px; width: 100%;"></div>
+       <div id="container2" style="height: 300px;"></div>
+ <script type="text/javascript">
+var dom = document.getElementById("container");
+var myChart = echarts.init(dom);
+var app = {};
+option = null;
+app.title = '环形图';
+
+option = {
+  title: {
+        text: 'Item Sales',
+        left: 'center'
+    },
+    tooltip: {
+        trigger: 'item',
+        formatter: "{a} <br/>{b}: {c} ({d}%)"
+    },
+    legend: {
+        orient: 'vertical',
+        x: 'left',
+        data: <%= @df.group_by('Order Priority').size.to_a %>
+    },
+    series: [
+        {
+            name:'Sample',
+            type:'pie',
+            radius: ['50%', '70%'],
+            avoidLabelOverlap: false,
+            label: {
+                normal: {
+                    show: false,
+                    position: 'center'
+                },
+                emphasis: {
+                    show: true,
+                    textStyle: {
+                        fontSize: '30',
+                        fontWeight: 'bold'
+                    }
+                }
+            },
+            labelLine: {
+                normal: {
+                    show: false
+                }
+            },
+            data:<%= @dff.group_by('Order Priority').size.to_a %>
+        }
+    ]
+};
+;
+if (option && typeof option === "object") {
+    myChart.setOption(option, true);
+}
+       </script>
+
+<script type="text/javascript">
+var dom = document.getElementById("container1");
+var myChart = echarts.init(dom);
+var app = {};
+option = null;
+option = {
+    title: {
+        text: 'Sales Data',
+        left: 'center'
+    },
+    tooltip: {
+        trigger: 'item',
+        formatter: '{a} <br/>{b} : {c}'
+    },
+    legend: {
+        left: 'left',
+        data: ['Unit Cost', 'Unit Price']
+    },
+    xAxis: {
+        type: 'category',
+        name: 'x',
+        splitLine: {show: true},
+        data: <%= raw @name.to_a %>
+    },
+    grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+    },
+    yAxis: {
+        type: 'log',
+        name: 'y'
+    },
+    series: [
+        {
+            name: 'Unit Price',
+            type: 'bar',
+            data: <%= @df['Unit Price'].to_a %>
+        },
+        {
+            name: 'Unit Cost',
+            type: 'bar',
+            data: <%= @df['Unit Cost'].to_a %>
+        },
+        {
+            name: 'Units Sold',
+            type: 'line',
+            data: <%= @df['Units Sold'].to_a %>
+        }
+    ]
+};
+;
+if (option && typeof option === "object") {
+    myChart.setOption(option, true);
+}
+</script>
+
+<script type="text/javascript">
+var dom = document.getElementById("container2");
+var myChart = echarts.init(dom);
+var app = {};
+option = null;
+option = {
+    backgroundColor: '#2c343c',
+
+    title: {
+        text: 'Net Revenue',
+        left: 'center',
+        top: 20,
+        textStyle: {
+            color: '#ccc'
+        }
+    },
+
+    tooltip : {
+        trigger: 'item',
+        formatter: "{a} <br/>{b} : {c} ({d}%)"
+    },
+
+    visualMap: {
+        show: false,
+        min: 80,
+        max: 600,
+        inRange: {
+            colorLightness: [0, 1]
+        }
+    },
+    series : [
+        {
+            name:'dddd',
+            type:'pie',
+            radius : '55%',
+            center: ['50%', '50%'],
+            data:[{value: <%= @df['Total Cost'].sum.to_d %>, name: 'Total Cost' },
+            {value: <%= @df['Total Profit'].sum.to_d %>, name: 'Total Profit' }
+            ].sort(function (a, b) { return a.value - b.value; }),
+            roseType: 'radius',
+            label: {
+                normal: {
+                    textStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    }
+                }
+            },
+            labelLine: {
+                normal: {
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    },
+                    smooth: 0.2,
+                    length: 10,
+                    length2: 20
+                }
+            },
+            itemStyle: {
+                normal: {
+                    color: '#c23531',
+                    shadowBlur: 200,
+                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+            },
+
+            animationType: 'scale',
+            animationEasing: 'elasticOut',
+            animationDelay: function (idx) {
+                return Math.random() * 200;
+            }
+        }
+    ]
+};;
+if (option && typeof option === "object") {
+    myChart.setOption(option, true);
+}
+       </script>
+
+
+</body>
+</html>
+<%= raw @order.to_h %>
+<%= @df.group_by('Order Priority').size.to_h %>
